@@ -3,13 +3,13 @@
 namespace App\AchievementBundle\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
-use App\AchievementBundle\Service\ProgressStorage;
+use App\AchievementBundle\Service\ProgressStorageInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class PersistingHandler extends PayloadValidatingHandler
 {
     /**
-     * @var ProgressStorage
+     * @var ProgressStorageInterface
      */
     private $progressStorage;
 
@@ -19,10 +19,10 @@ abstract class PersistingHandler extends PayloadValidatingHandler
     private $progress = 0.0;
 
     /**
-     * @param ProgressStorage $progressStorage
+     * @param ProgressStorageInterface $progressStorage
      * @param ValidatorInterface $validator
      */
-    public function __construct(ProgressStorage $progressStorage, ValidatorInterface $validator)
+    public function __construct(ProgressStorageInterface $progressStorage, ValidatorInterface $validator)
     {
         parent::__construct($validator);
         $this->progressStorage = $progressStorage;
@@ -39,6 +39,12 @@ abstract class PersistingHandler extends PayloadValidatingHandler
         $this->progress = $this->calculateProgress($processedData);
     }
 
+    /**
+     * Calculates the achievement progress, expressed as percantage - float number ranging from 0 to 100
+     *
+     * @param $processedData progress data already updated by the process method
+     * @return float progress percentage
+     */
     protected abstract function calculateProgress($processedData): float;
 
     /**
@@ -54,6 +60,13 @@ abstract class PersistingHandler extends PayloadValidatingHandler
         $this->progressStorage->store($e->getAchievementId(), $e->getUserId(), $processedData);
     }
 
+    /**
+     * Process achievement progress data according to a received update
+     *
+     * @param $eventData progress update data
+     * @param $progressData progress data retrieved from the data storage, keep in mind this can be null
+     * @return mixed updated progress data to be persisted in the data storage
+     */
     protected abstract function process($eventData, $progressData);
 
     public function isAchieved(): bool

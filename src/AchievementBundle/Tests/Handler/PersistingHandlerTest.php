@@ -4,7 +4,7 @@ namespace App\AchievementBundle\Tests\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
 use App\AchievementBundle\Handler\PersistingHandler;
-use App\AchievementBundle\Service\ProgressStorage;
+use App\AchievementBundle\Service\ProgressStorageInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -42,23 +42,20 @@ class PersistingHandlerTest extends TestCase
 
     protected function getProgressStorageMock()
     {
-        $mock = $this->createMock(ProgressStorage::class);
+        $mock = $this->createMock(ProgressStorageInterface::class);
 
         $mock->method("store")->willReturnCallback(function($achievementId, $userId, $data){
            self::$storageData = $data;
         });
 
         $mock->method("retrieve")->willReturnCallback(function($achievementId, $userId){
-            if(empty(self::$storageData)) {
-                self::$storageData = ['total' => 0];
-            }
             return self::$storageData;
         });
 
         return $mock;
     }
 
-    protected function getPersistingAchievementHandlerMock(ProgressStorage $storage)
+    protected function getPersistingAchievementHandlerMock(ProgressStorageInterface $storage)
     {
         $mock = $this->getMockBuilder(PersistingHandler::class)
             ->setMethodsExcept(['getProgress', 'isAchieved'])
@@ -72,6 +69,11 @@ class PersistingHandlerTest extends TestCase
         });
         $mock->method("process")->willReturnCallback(function ($eventData, $progressData) use (&$achieved) {
             $incrementation = $eventData['incrementation'];
+
+            if(empty($progressData)) {
+                $progressData = ['total' => 0];
+            }
+
             $newTotal = $progressData['total'] + $incrementation;
 
             return ["total" => $newTotal];
