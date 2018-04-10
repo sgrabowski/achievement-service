@@ -25,4 +25,8 @@ class Manager
         
     }
 
+    public function unlock($achievementId, $userId)
+    {
+
+    }
 }
