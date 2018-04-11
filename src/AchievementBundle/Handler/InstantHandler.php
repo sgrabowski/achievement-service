@@ -3,6 +3,7 @@
 namespace App\AchievementBundle\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 abstract class InstantHandler extends PayloadValidatingHandler
 {
@@ -19,22 +20,17 @@ abstract class InstantHandler extends PayloadValidatingHandler
      *
      * @throws \App\AchievementBundle\Exception\PayloadValidationException
      */
-    public final function updateProgress(ProgressUpdateEvent $e): void
+    public final function updateProgress(ProgressUpdateEvent $e): bool
     {
         $this->validatePayload($e);
-        $this->process($e->getPayload());
+        return $this->process($e->getPayload());
     }
 
     /**
      * Processes event data to see if achievement requirements are met
-     * This method should change the object's state so that isAchieved() returns accordingly
      *
      * @param $eventData
+     * @return bool True if achievement is complete
      */
-    protected abstract function process($eventData): void;
-
-    public function getProgress(): float
-    {
-        return (float) $this->isAchieved() ? 100 : 0;
-    }
+    protected abstract function process($eventData): bool;
 }

@@ -8,27 +8,46 @@ use App\AchievementBundle\Handler\HandlerInterface;
 
 class HandlerMap
 {
-    private $handlers = [];
+    private $handlersByTag = [];
 
     public function registerHandler(HandlerInterface $handler)
     {
-        $this->handlers[$handler->getAchievementId()] = $handler;
+        $tags = $handler->getTriggeredByTags();
+        foreach ($tags as $tag) {
+            if(array_key_exists($tag, $this->handlersByTag)) {
+                if(!in_array($handler, $this->handlersByTag[$tag])) {
+                    $this->handlersByTag[$tag][] = $handler;
+                }
+            } else {
+                $this->handlersByTag[$tag] = [$handler];
+            }
+        }
     }
 
     /**
      * Find achievement handler for update event
      *
      * @param ProgressUpdateEvent $e
-     * @return HandlerInterface
+     * @return HandlerInterface[]
      * @throws HandlerNotFoundException
      */
-    public function getHandler(ProgressUpdateEvent $e)
+    public function getHandlers(ProgressUpdateEvent $e)
     {
-        if (array_key_exists($e->getAchievementId(), $this->handlers)) {
-            return $this->handlers[$e->getAchievementId()];
+        if (array_key_exists($e->getTag(), $this->handlersByTag)) {
+            $handlers = $this->handlersByTag[$e->getTag()];
+            $toReturn = [];
+            foreach ($handlers as $handler) {
+                if($handler->isSharable()) {
+                    $toReturn[] = $handler;
+                } else {
+                    $toReturn[] = clone $handler;
+                }
+            }
+
+            return $toReturn;
         }
 
-        throw new HandlerNotFoundException($e->getAchievementId());
+        throw new HandlerNotFoundException($e->getTag());
     }
 
 }

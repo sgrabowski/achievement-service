@@ -9,45 +9,37 @@ class ProgressUpdateEvent extends Event
 
     const NAME = "achievement.progress_update";
 
-    /**
-     * @var string
-     */
-    protected $achievementId;
+    protected $tag;
 
-    /**
-     * User to whom the update relates
-     * 
-     * @var string
-     */
     protected $userId;
 
-    /**
-     * Arbitrary event data
-     * 
-     * @var mixed
-     */
     protected $payload;
 
     /**
      * Optional eventId for debugging / rejection identification
-     * 
+     *
      * @var string
      */
     protected $eventId;
 
-    function __construct($achievementId, $userId, $payload)
+    /**
+     * @param $tag string Event tag used by handles to check whether they should trigger event processing
+     * @param $userId string User to whom the update relates
+     * @param $payload mixed Arbitrary event data
+     */
+    function __construct($tag, $userId, $payload)
     {
-        $this->achievementId = $achievementId;
+        $this->tag = $tag;
         $this->userId = $userId;
         $this->payload = $payload;
     }
 
-    function getAchievementId()
+    public function getTag(): string
     {
-        return $this->achievementId;
+        return $this->tag;
     }
 
-    function getUserId()
+    function getUserId(): string
     {
         return $this->userId;
     }
