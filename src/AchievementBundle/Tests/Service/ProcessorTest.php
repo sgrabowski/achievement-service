@@ -3,6 +3,7 @@
 namespace App\AchievementBundle\Tests\Service;
 
 use App\AchievementBundle\Event\AchievementCompletedEvent;
+use App\AchievementBundle\Event\AchievementProgressedEvent;
 use App\AchievementBundle\Event\ProgressUpdateEvent;
 use App\AchievementBundle\Exception\HandlerNotFoundException;
 use App\AchievementBundle\Handler\HandlerInterface;
@@ -14,7 +15,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class ProcessorTest extends TestCase
 {
 
-    public function testCompletedAchievement()
+    public function testAchievementProgressionAndCompletion()
     {
         $dispatcher = $this->getEventDispatcherMock();
 
@@ -25,12 +26,16 @@ class ProcessorTest extends TestCase
             $dispatcher
         );
 
-        $dispatcher->expects($this->once())
+        $dispatcher->expects($this->exactly(2))
             ->method("dispatch")
-            ->with($this->isInstanceOf(AchievementCompletedEvent::class));
+            ->withConsecutive(
+                [$this->anything(), $this->isInstanceOf(AchievementProgressedEvent::class)],
+                [$this->anything(), $this->isInstanceOf(AchievementCompletedEvent::class)]
+            );
 
         $event = new ProgressUpdateEvent("test-1", 1, []);
-
+        $processor->processEvent($event);
+        $event = new ProgressUpdateEvent("test-1", 1, []);
         $processor->processEvent($event);
     }
 
@@ -51,12 +56,13 @@ class ProcessorTest extends TestCase
         return $handlerMap;
     }
 
-    protected function getAchievementHandlerMock(bool $achieved = true)
+    protected function getAchievementHandlerMock($achievementId = "test-1", $tags = ['test-1', 'test2'])
     {
         $mock = $this->createMock(HandlerInterface::class);
-        $mock->method("getAchievementId")->willReturn("test-1");
-        $mock->method("isAchieved")->willReturn($achieved);
+        $mock->method("getAchievementId")->willReturn($achievementId);
         $mock->method("getValidationConstraint")->willReturn(null);
+        $mock->method("getTriggeredByTags")->willReturn($tags);
+        $mock->method("updateProgress")->willReturnOnConsecutiveCalls(false, true);
 
         return $mock;
     }

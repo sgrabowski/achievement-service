@@ -31,7 +31,7 @@ class PayloadValidatingHandlerTest extends TestCase
         $handler->validatePayload($event);
     }
 
-    public function testPayloadeValid()
+    public function testPayloadValid()
     {
         $handler = $this->getMockBuilder(PayloadValidatingHandler::class)
             ->setConstructorArgs([

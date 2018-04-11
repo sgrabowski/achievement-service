@@ -22,6 +22,8 @@ class Processor implements EventSubscriberInterface
      */
     protected $eventDispatcher;
 
+    protected $achievementStateStorage;
+
     function __construct(HandlerMap $handlers, EventDispatcherInterface $eventDispatcher)
     {
         $this->handlers = $handlers;
@@ -45,16 +47,18 @@ class Processor implements EventSubscriberInterface
      */
     public function processEvent(ProgressUpdateEvent $e)
     {
-        $handler = $this->handlers->getHandler($e);
+        $handlers = $this->handlers->getHandlers($e);
 
-        $handler->updateProgress($e);
+        foreach ($handlers as $handler) {
+            $achieved = $handler->updateProgress($e);
 
-        if ($handler->isAchieved()) {
-            $completionEvent = new AchievementCompletedEvent($e->getAchievementId(), $e->getUserId());
-            $this->eventDispatcher->dispatch($completionEvent);
-        } else {
-            $updateEvent = new AchievementProgressedEvent($e->getAchievementId(), $e->getUserId(), $handler->getProgress());
-            $this->eventDispatcher->dispatch($updateEvent::NAME, $updateEvent);
+            if ($achieved) {
+                $completionEvent = new AchievementCompletedEvent($handler->getAchievementId(), $e->getUserId());
+                $this->eventDispatcher->dispatch($completionEvent::NAME, $completionEvent);
+            } else {
+                $updateEvent = new AchievementProgressedEvent($handler->getAchievementId(), $e->getUserId(), $handler->getProgress());
+                $this->eventDispatcher->dispatch($updateEvent::NAME, $updateEvent);
+            }
         }
     }
 

@@ -25,19 +25,19 @@ class PersistingHandlerTest extends TestCase
             ->method("store");
 
         $event = new ProgressUpdateEvent("persisting-1", 1, ['incrementation' => 1]);
-        $handler->updateProgress($event);
+        $achieved = $handler->updateProgress($event);
         $this->assertEquals(2, $handler->getProgress());
-        $this->assertEquals(false, $handler->isAchieved());
+        $this->assertEquals(false, $achieved);
 
         $event = new ProgressUpdateEvent("persisting-1", 1, ['incrementation' => 10]);
-        $handler->updateProgress($event);
+        $achieved = $handler->updateProgress($event);
         $this->assertEquals(22, $handler->getProgress());
-        $this->assertEquals(false, $handler->isAchieved());
+        $this->assertEquals(false, $achieved);
 
         $event = new ProgressUpdateEvent("persisting-1", 1, ['incrementation' => 100]);
-        $handler->updateProgress($event);
+        $achieved = $handler->updateProgress($event);
         $this->assertEquals(100, $handler->getProgress());
-        $this->assertEquals(true, $handler->isAchieved());
+        $this->assertEquals(true, $achieved);
     }
 
     protected function getProgressStorageMock()
@@ -58,7 +58,7 @@ class PersistingHandlerTest extends TestCase
     protected function getPersistingAchievementHandlerMock(ProgressStorageInterface $storage)
     {
         $mock = $this->getMockBuilder(PersistingHandler::class)
-            ->setMethodsExcept(['getProgress', 'isAchieved'])
+            ->setMethodsExcept(['getProgress'])
             ->setConstructorArgs([
                 $storage,
                 $this->getValidatorMock()

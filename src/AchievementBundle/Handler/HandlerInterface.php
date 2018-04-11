@@ -18,23 +18,18 @@ interface HandlerInterface
      * Updates achievement progress
      *
      * @param ProgressUpdateEvent $e
+     * @return bool True if achievement is complete
      */
-    public function updateProgress(ProgressUpdateEvent $e): void;
+    public function updateProgress(ProgressUpdateEvent $e): bool;
 
     /**
-     * Was the achievement completed after processing the update?
-     *
-     * @return bool
-     */
-    public function isAchieved(): bool;
-
-    /**
-     * Returns validation rules for the update payload ( @see ProgressUpdateEvent::$payload )
+     * Returns validation rules for the update payload by event's tag ( @see ProgressUpdateEvent::$payload )
      * If null, no validation will be performed
      *
+     * @param $tag string event tag
      * @return Constraint|null
      */
-    public function getValidationConstraint(): ?Constraint;
+    public function getValidationConstraint($tag): ?Constraint;
 
     /**
      * Returns progress rate as percentage (0-100 float)
@@ -44,4 +39,19 @@ interface HandlerInterface
      * @return float
      */
     public function getProgress(): float;
+
+    /**
+     * Returns a list of event tags defining which events trigger this handler to process them
+     *
+     * @return array|string[]
+     */
+    public function getTriggeredByTags(): array;
+
+    /**
+     * Returns whether a single instance of this handler can be used for all handled events
+     * In other words, returns whether this handler is stateless or not
+     *
+     * @return bool
+     */
+    public function isSharable(): bool;
 }
