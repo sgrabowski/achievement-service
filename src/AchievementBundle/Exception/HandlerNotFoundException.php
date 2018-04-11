@@ -6,8 +6,8 @@ use Exception;
 
 class HandlerNotFoundException extends Exception
 {
-    public function __construct($achievementId)
+    public function __construct($tag)
     {
-        parent::__construct(sprintf('Handler for achievement %s is not registered', $achievementId));
+        parent::__construct(sprintf('No handler for tag %s is registered', $tag));
     }
 }

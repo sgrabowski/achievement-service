@@ -26,9 +26,9 @@ class AchievementProgressedEvent extends Event
     /**
      * @param string $achievementId
      * @param string $userId
-     * @param float $progress
+     * @param float $progress Progress percentage, can be null
      */
-    public function __construct(string $achievementId, string $userId, float $progress)
+    public function __construct(string $achievementId, string $userId, ?float $progress = null)
     {
         $this->achievementId = $achievementId;
         $this->userId = $userId;

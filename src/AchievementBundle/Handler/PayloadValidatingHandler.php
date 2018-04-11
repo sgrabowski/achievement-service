@@ -30,7 +30,7 @@ abstract class PayloadValidatingHandler implements HandlerInterface
      */
     public final function validatePayload(ProgressUpdateEvent $e): void
     {
-        $errors = $this->validator->validate($e->getPayload(), $this->getValidationConstraint());
+        $errors = $this->validator->validate($e->getPayload(), $this->getValidationConstraint($e->getTag()));
 
         if (count($errors) > 0) {
             throw new PayloadValidationException($e, $errors);

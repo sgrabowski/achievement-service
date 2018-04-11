@@ -4,7 +4,7 @@ namespace App\AchievementBundle\Service;
 
 use Symfony\Component\Cache\Adapter\TagAwareAdapterInterface;
 
-class ProgressCacheStorage implements ProgressStorageInterface
+class MetadataCacheStorage implements MetadataStorage, CompletionStorage
 {
     private $cache;
 
@@ -17,7 +17,7 @@ class ProgressCacheStorage implements ProgressStorageInterface
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function store($achievementId, $userId, $data)
+    public function store($achievementId, $userId, $data): bool
     {
         $item = $this->cache->getItem($this->buildCacheKey($achievementId, $userId));
         $item->set($data);
@@ -25,16 +25,16 @@ class ProgressCacheStorage implements ProgressStorageInterface
         return $this->cache->save($item);
     }
 
-    protected function buildCacheKey($achievementId, $userId)
+    protected function buildCacheKey($achievementId, $userId, $key = "data")
     {
-        return "achievement.data_" . $achievementId . "_" . $userId;
+        return "achievement." . $key . "_" . $achievementId . "_" . $userId;
     }
 
     /**
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function retrieve($achievementId, $userId)
+    public function retrieve($achievementId, $userId): bool
     {
         return $this->cache->getItem($this->buildCacheKey($achievementId, $userId))->get();
     }
@@ -43,7 +43,7 @@ class ProgressCacheStorage implements ProgressStorageInterface
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function deleteUserData($userId)
+    public function deleteUserData($userId): bool
     {
         return $this->cache->invalidateTags(["user_" . $userId]);
     }
@@ -52,7 +52,7 @@ class ProgressCacheStorage implements ProgressStorageInterface
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function deleteAchievementData($achievementId)
+    public function deleteAchievementData($achievementId): bool
     {
         return $this->cache->invalidateTags(["achievement_" . $achievementId]);
     }
@@ -61,8 +61,29 @@ class ProgressCacheStorage implements ProgressStorageInterface
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function delete($achievementId, $userId)
+    public function delete($achievementId, $userId): bool
     {
         return $this->cache->deleteItem($this->buildCacheKey($achievementId, $userId));
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function markAsComplete($achievementId, $userId): bool
+    {
+        $item = $this->cache->getItem($this->buildCacheKey($achievementId, $userId, "obtained"));
+        $item->set(true);
+        $item->tag(['achievement_' . $achievementId, "user_" . $userId]);
+        return $this->cache->save($item);
+    }
+
+    /**
+     * {@inheritdoc}
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    public function isCompleted($achievementId, $userId): bool
+    {
+        return $this->cache->getItem($this->buildCacheKey($achievementId, $userId, "obtained"))->get() ?? false;
     }
 }
