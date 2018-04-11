@@ -3,14 +3,14 @@
 namespace App\AchievementBundle\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
-use App\AchievementBundle\Service\ProgressStorageInterface;
+use App\AchievementBundle\Service\MetadataStorage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 //@TODO: make this handler sharable (progress -> progressMap)
 abstract class PersistingHandler extends PayloadValidatingHandler
 {
     /**
-     * @var ProgressStorageInterface
+     * @var MetadataStorage
      */
     private $progressStorage;
 
@@ -20,10 +20,10 @@ abstract class PersistingHandler extends PayloadValidatingHandler
     private $progress = 0.0;
 
     /**
-     * @param ProgressStorageInterface $progressStorage
+     * @param MetadataStorage $progressStorage
      * @param ValidatorInterface $validator
      */
-    public function __construct(ProgressStorageInterface $progressStorage, ValidatorInterface $validator)
+    public function __construct(MetadataStorage $progressStorage, ValidatorInterface $validator)
     {
         parent::__construct($validator);
         $this->progressStorage = $progressStorage;

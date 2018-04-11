@@ -12,22 +12,16 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class Processor implements EventSubscriberInterface
 {
-    /**
-     * @var HandlerMap
-     */
+
     protected $handlers;
-
-    /**
-     * @var EventDispatcherInterface
-     */
     protected $eventDispatcher;
+    protected $completionStorage;
 
-    protected $achievementStateStorage;
-
-    function __construct(HandlerMap $handlers, EventDispatcherInterface $eventDispatcher)
+    function __construct(HandlerMap $handlers, EventDispatcherInterface $eventDispatcher, CompletionStorage $completionStorage)
     {
         $this->handlers = $handlers;
         $this->eventDispatcher = $eventDispatcher;
+        $this->completionStorage = $completionStorage;
         $eventDispatcher->addSubscriber($this);
     }
 
@@ -50,11 +44,16 @@ class Processor implements EventSubscriberInterface
         $handlers = $this->handlers->getHandlers($e);
 
         foreach ($handlers as $handler) {
+            if($this->completionStorage->isCompleted($handler->getAchievementId(), $e->getUserId())) {
+                return;
+            }
+
             $achieved = $handler->updateProgress($e);
 
             if ($achieved) {
                 $completionEvent = new AchievementCompletedEvent($handler->getAchievementId(), $e->getUserId());
                 $this->eventDispatcher->dispatch($completionEvent::NAME, $completionEvent);
+                $this->completionStorage->markAsComplete($handler->getAchievementId(), $e->getUserId());
             } else {
                 $updateEvent = new AchievementProgressedEvent($handler->getAchievementId(), $e->getUserId(), $handler->getProgress());
                 $this->eventDispatcher->dispatch($updateEvent::NAME, $updateEvent);

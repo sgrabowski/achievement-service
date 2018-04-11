@@ -4,7 +4,7 @@ namespace App\AchievementBundle\Tests\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
 use App\AchievementBundle\Handler\PersistingHandler;
-use App\AchievementBundle\Service\ProgressStorageInterface;
+use App\AchievementBundle\Service\MetadataStorage;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -12,6 +12,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class PersistingHandlerTest extends TestCase
 {
     protected static $storageData;
+
+    protected function setUp()
+    {
+        self::$storageData = null;
+    }
 
     public function testPersistingAchievement()
     {
@@ -42,10 +47,11 @@ class PersistingHandlerTest extends TestCase
 
     protected function getProgressStorageMock()
     {
-        $mock = $this->createMock(ProgressStorageInterface::class);
+        $mock = $this->createMock(MetadataStorage::class);
 
         $mock->method("store")->willReturnCallback(function($achievementId, $userId, $data){
            self::$storageData = $data;
+           return true;
         });
 
         $mock->method("retrieve")->willReturnCallback(function($achievementId, $userId){
@@ -55,7 +61,7 @@ class PersistingHandlerTest extends TestCase
         return $mock;
     }
 
-    protected function getPersistingAchievementHandlerMock(ProgressStorageInterface $storage)
+    protected function getPersistingAchievementHandlerMock(MetadataStorage $storage)
     {
         $mock = $this->getMockBuilder(PersistingHandler::class)
             ->setMethodsExcept(['getProgress'])
