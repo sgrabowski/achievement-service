@@ -23,14 +23,15 @@ abstract class InstantHandler extends PayloadValidatingHandler
     public final function updateProgress(ProgressUpdateEvent $e): bool
     {
         $this->validatePayload($e);
-        return $this->process($e->getPayload());
+        return $this->process($e->getTag(), $e->getPayload());
     }
 
     /**
      * Processes event data to see if achievement requirements are met
      *
-     * @param $eventData
+     * @param $tag event tag
+     * @param $eventData progress update data
      * @return bool True if achievement is complete
      */
-    protected abstract function process($eventData): bool;
+    protected abstract function process($tag, $eventData): bool;
 }

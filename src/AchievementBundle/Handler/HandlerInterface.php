@@ -3,7 +3,6 @@
 namespace App\AchievementBundle\Handler;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
-use Symfony\Component\Validator\Constraint;
 
 interface HandlerInterface
 {
@@ -23,22 +22,13 @@ interface HandlerInterface
     public function updateProgress(ProgressUpdateEvent $e): bool;
 
     /**
-     * Returns validation rules for the update payload by event's tag ( @see ProgressUpdateEvent::$payload )
-     * If null, no validation will be performed
-     *
-     * @param $tag string event tag
-     * @return Constraint|null
-     */
-    public function getValidationConstraint($tag): ?Constraint;
-
-    /**
      * Returns progress rate as percentage (0-100 float)
      *
      * Note: float is used here to allow displaying precise values, such as 33.23% completion
      *
      * @return float
      */
-    public function getProgress(): float;
+    public function getProgress(): ?float;
 
     /**
      * Returns a list of event tags defining which events trigger this handler to process them
@@ -48,7 +38,7 @@ interface HandlerInterface
     public function getTriggeredByTags(): array;
 
     /**
-     * Returns whether a single instance of this handler can be used for all handled events
+     * Returns whether a single instance of this handler can be used multiple times
      * In other words, returns whether this handler is stateless or not
      *
      * @return bool

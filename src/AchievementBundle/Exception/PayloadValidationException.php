@@ -4,6 +4,7 @@ namespace App\AchievementBundle\Exception;
 
 use App\AchievementBundle\Event\ProgressUpdateEvent;
 use Exception;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class PayloadValidationException extends Exception
@@ -12,22 +13,23 @@ class PayloadValidationException extends Exception
     /**
      * @var ProgressUpdateEvent
      */
-    protected $event;
+    protected $progressUpdateEvent;
 
     /**
      * @var ConstraintViolationListInterface
      */
     protected $validationErrors;
 
-    public function __construct(ProgressUpdateEvent $event, ConstraintViolationListInterface $validationErrors)
+    public function __construct(ProgressUpdateEvent $progressUpdateEvent, ConstraintViolationListInterface $validationErrors)
     {
-        $this->event = $event;
+        $this->progressUpdateEvent = $progressUpdateEvent;
         $this->validationErrors = $validationErrors;
+        parent::__construct("Invalid payload");
     }
 
-    public function getEvent(): ProgressUpdateEvent
+    public function getProgressUpdateEvent(): ProgressUpdateEvent
     {
-        return $this->event;
+        return $this->progressUpdateEvent;
     }
 
     public function getValidationErrors(): ConstraintViolationListInterface
@@ -35,4 +37,24 @@ class PayloadValidationException extends Exception
         return $this->validationErrors;
     }
 
+    /**
+     * Returns formatted errors
+     *
+     * @return array
+     */
+    public function getPrettyValidationErrors()
+    {
+        $errors = [];
+
+        foreach ($this->validationErrors as $validationError) {
+            /* @var $validationError ConstraintViolationInterface */
+            $propertyPath = $validationError->getPropertyPath();
+
+            $message = $validationError->getMessage();
+
+            $errors[$propertyPath] = $message;
+        }
+
+        return $errors;
+    }
 }
