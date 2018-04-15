@@ -4,7 +4,7 @@ namespace App\AchievementBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class AchievementCompletedEvent extends Event
+class AchievementCompletedEvent extends Event implements AchievementEventInterface
 {
     const NAME = "achievement.completed";
 

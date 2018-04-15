@@ -5,6 +5,7 @@ namespace App\AchievementBundle\Service;
 use App\AchievementBundle\Event\AchievementCompletedEvent;
 use App\AchievementBundle\Event\AchievementProgressedEvent;
 use App\AchievementBundle\Event\ProgressUpdateEvent;
+use App\AchievementBundle\Event\ProgressUpdateUnhandledEvent;
 use App\AchievementBundle\Exception\HandlerNotFoundException;
 use App\AchievementBundle\Exception\PayloadValidationException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -22,7 +23,6 @@ class Processor implements EventSubscriberInterface
         $this->handlers = $handlers;
         $this->eventDispatcher = $eventDispatcher;
         $this->completionStorage = $completionStorage;
-        $eventDispatcher->addSubscriber($this);
     }
 
     public static function getSubscribedEvents(): array
@@ -41,14 +41,32 @@ class Processor implements EventSubscriberInterface
      */
     public function processEvent(ProgressUpdateEvent $e)
     {
-        $handlers = $this->handlers->getHandlers($e);
+        try {
+            $handlers = $this->handlers->getHandlers($e);
+        } catch (HandlerNotFoundException $exception) {
+            $unhandledEvent = new ProgressUpdateUnhandledEvent($exception->getProgressUpdateEvent(), [
+                "message" => $exception->getMessage()
+            ]);
+            $this->eventDispatcher->dispatch($unhandledEvent::NAME, $unhandledEvent);
+            return;
+        }
+
 
         foreach ($handlers as $handler) {
             if($this->completionStorage->isCompleted($handler->getAchievementId(), $e->getUserId())) {
-                return;
+                continue;
             }
 
-            $achieved = $handler->updateProgress($e);
+            try {
+                $achieved = $handler->updateProgress($e);
+            } catch(PayloadValidationException $exception) {
+                $unhandledEvent = new ProgressUpdateUnhandledEvent($exception->getProgressUpdateEvent(), [
+                    'message' => $exception->getMessage(),
+                    "validationErrors" => $exception->getPrettyValidationErrors()
+                ]);
+                $this->eventDispatcher->dispatch($unhandledEvent::NAME, $unhandledEvent);
+                continue;
+            }
 
             if ($achieved) {
                 $completionEvent = new AchievementCompletedEvent($handler->getAchievementId(), $e->getUserId());

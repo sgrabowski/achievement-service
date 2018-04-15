@@ -47,7 +47,7 @@ class HandlerMap
             return $toReturn;
         }
 
-        throw new HandlerNotFoundException($e->getTag());
+        throw new HandlerNotFoundException($e);
     }
 
 }

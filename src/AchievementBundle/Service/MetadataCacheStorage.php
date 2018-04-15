@@ -34,7 +34,7 @@ class MetadataCacheStorage implements MetadataStorage, CompletionStorage
      * {@inheritdoc}
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function retrieve($achievementId, $userId): bool
+    public function retrieve($achievementId, $userId)
     {
         return $this->cache->getItem($this->buildCacheKey($achievementId, $userId))->get();
     }
