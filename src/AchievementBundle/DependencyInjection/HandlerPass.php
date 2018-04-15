@@ -6,7 +6,6 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
-//TODO: add exception handling
 class HandlerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)

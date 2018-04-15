@@ -35,19 +35,6 @@ abstract class PersistingHandler extends PayloadValidatingHandler
         return min((float)100, $this->progress);
     }
 
-    private function setInternalProgress($processedData)
-    {
-        $this->progress = $this->calculateProgress($processedData);
-    }
-
-    /**
-     * Calculates the achievement progress, expressed as percantage - float number ranging from 0 to 100
-     *
-     * @param $processedData progress data already updated by the process method
-     * @return float progress percentage
-     */
-    protected abstract function calculateProgress($processedData): float;
-
     /**
      * {@inheritdoc}
      * @throws \App\AchievementBundle\Exception\PayloadValidationException
@@ -56,7 +43,12 @@ abstract class PersistingHandler extends PayloadValidatingHandler
     {
         $this->validatePayload($e);
         $progressData = $this->progressStorage->retrieve($this->getAchievementId(), $e->getUserId());
-        $processedData = $this->process($e->getPayload(), $progressData);
+
+        if($progressData === null) {
+            $progressData = $this->initProgressData();
+        }
+
+        $processedData = $this->process($e->getTag(), $e->getPayload(), $progressData);
         $this->setInternalProgress($processedData);
         $this->progressStorage->store($this->getAchievementId(), $e->getUserId(), $processedData);
 
@@ -66,11 +58,34 @@ abstract class PersistingHandler extends PayloadValidatingHandler
     /**
      * Process achievement progress data according to a received update
      *
+     * @param $tag event tag
      * @param $eventData progress update data
      * @param $progressData progress data retrieved from the data storage, keep in mind this can be null
      * @return mixed updated progress data to be persisted in the data storage
      */
-    protected abstract function process($eventData, $progressData);
+    protected abstract function process($tag, $eventData, $progressData);
+
+    /**
+     * Returns a freshly initialized progress data structure
+     * This will be used when achievement is processed for the first time
+     *
+     * @return mixed
+     */
+    protected abstract function initProgressData();
+
+    private function setInternalProgress($processedData)
+    {
+        $this->progress = $this->calculateProgress($processedData);
+    }
+
+    /**
+     * Calculates the achievement progress, expressed as percantage - float number ranging from 0 to 100
+     * If the progress cannot be calculated, this still needs to return 100 when achievement is complete
+     *
+     * @param $processedData progress data already updated by the process method
+     * @return float progress percentage
+     */
+    protected abstract function calculateProgress($processedData): float;
 
     public function isSharable(): bool
     {

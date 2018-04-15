@@ -7,3 +7,30 @@ services:
     # aliases are prefixed with test. For example:
     #
     # test.App\Service\MyService: '@App\Service\MyService'
+
+    test.Symfony\Component\Cache\Adapter\TagAwareAdapterInterface: '@Symfony\Component\Cache\Adapter\TagAwareAdapterInterface'
+
+    app.cache.tag_aware.items_pool:
+        class: Symfony\Component\Cache\Adapter\FilesystemAdapter
+        arguments: ["test"]
+
+    app.cache.tag_aware.tags_pool:
+        class: Symfony\Component\Cache\Adapter\FilesystemAdapter
+        arguments: ["test"]
+
+    App\Tests\Controller\Fixtures\KillAndDestroyAchievementHandler:
+        autoconfigure: true
+        autowire: true
+
+    App\Tests\Controller\Fixtures\FirstBloodAchievementHandler:
+        autoconfigure: true
+        autowire: true
+
+    App\AchievementBundle\Service\HandlerMap:
+        calls:
+            - method: registerHandler
+              arguments:
+                  - '@App\Tests\Controller\Fixtures\KillAndDestroyAchievementHandler'
+            - method: registerHandler
+              arguments:
+                  - '@App\Tests\Controller\Fixtures\FirstBloodAchievementHandler'

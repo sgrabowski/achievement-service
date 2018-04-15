@@ -4,7 +4,7 @@ namespace App\AchievementBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 
-class AchievementProgressedEvent extends Event
+class AchievementProgressedEvent extends Event implements AchievementEventInterface
 {
     const NAME = "achievement.progressed";
 
