@@ -36,7 +36,6 @@ POST /events
 
 Best way to see how it works is to check the EventControllerTest file.
 
-
 ### AchievementBundle
 
 This is where all the core functionality is kept.
